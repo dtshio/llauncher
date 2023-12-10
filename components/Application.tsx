@@ -19,8 +19,7 @@ const displayMappings: Record<string, DisplayMapper<unknown>> = {
     },
     ERROR: (item: DisplayFor<ErrorItem>) => {
         return (
-            <div className="flex items-center justify-center text-center p-6" key={item.__type}>
-                <div>{item.message}</div>
+            <div className="flex flex-col items-center justify-center text-center p-6" key={item.__type}>
                 <div>{item.message}</div>
             </div>
         )

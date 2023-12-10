@@ -9,7 +9,7 @@ if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
-function createWindow() {
+async function createWindow() {
   const display = screen.getPrimaryDisplay()
   const mainWindow = new BrowserWindow({
     // size and position
@@ -51,15 +51,17 @@ function createWindow() {
     },
   })
 
+  await launcher.setup({ window: mainWindow })
+
+  // menu app
   const tray = new Tray(nativeImage.createEmpty())
-  const toggleWindow = toggle(mainWindow)
+  const toggleWindowVisibility = toggle(mainWindow)
 
   tray.setTitle('launcher')
-  tray.addListener('click', toggleWindow)
+  tray.addListener('click', toggleWindowVisibility)
 
-  globalShortcut.register('CommandOrControl+Alt+E', toggleWindow)
-
-  launcher.handle({ window: mainWindow })
+  // todo custom global shortcut
+  globalShortcut.register('CommandOrControl+Alt+E', toggleWindowVisibility)
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL)
@@ -68,10 +70,18 @@ function createWindow() {
   }
 }
 
+/**
+ * Closes the application when there is no more open windows.
+ */
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
+})
+
+/**
+ * Called when gracefully shutting down.
+ */
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })
 
 app.on('activate', () => {
@@ -80,10 +90,6 @@ app.on('activate', () => {
   if (windows.length === 0) {
     createWindow()
   }
-})
-
-app.on('will-quit', () => {
-  globalShortcut.unregisterAll()
 })
 
 app.whenReady().then(createWindow)
